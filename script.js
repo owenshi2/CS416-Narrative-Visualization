@@ -273,7 +273,7 @@ function renderScene2(raw_data) {
         .call(makeAnnotations);
   
   }
-  
+
 
 async function loadData() {
         const data = await d3.csv("data/data.csv");
