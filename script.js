@@ -276,7 +276,7 @@ function renderScene2(raw_data) {
   
 
 async function loadData() {
-        const data = await d3.csv("Data/data.csv");
+        const data = await d3.csv("data/data.csv");
         return data;
  }
 
