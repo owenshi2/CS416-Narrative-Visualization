@@ -1,0 +1,39 @@
+
+#slide-container {
+    width: 1000px;
+    height: 1000px;
+    margin: 10px;
+    padding: 10px;
+}
+
+button {
+    margin: 5px;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    text-align: center;  /* Center the text globally for the entire page. */
+    display: flex;       /* Set body as a flex container */
+    flex-direction: column;  /* Items are stacked vertically */
+    justify-content: center; /* Center items horizontally */
+    align-items: center;     /* Center items vertically */
+    height: 100vh;      /* Set body height to 100% of the viewport height */
+    background-color: lightgreen;
+}
+
+
+#pageTitle {
+    font-weight: bold;
+    margin-top: 40px;  /* Adds some space at the top */
+}
+
+#explanation {
+    margin: 20px auto;  /* Adds vertical margin and centers the paragraph */
+    max-width: 800px;  /* Limits the width to make it more readable */
+    text-align: justify;  /* Justifies the paragraph content for better alignment */
+}
+
+#song-container {
+    width: 1000px;
+    height: 1000px;
+}
