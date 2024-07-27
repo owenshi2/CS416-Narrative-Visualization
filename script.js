@@ -1,14 +1,20 @@
 // d3.select('h1').style('color', 'red');
 let currentScene = 0;
 // const scenes = [renderScene1, renderScene2, renderScene3];  
-const scenes = ['', '', ''];  
+const scenes = [drawScatter, drawScatter, drawScatter];  
 window.onload = renderScene;
 
 function renderScene() {
-    // loadData().then(data => {
-    //     scenes[currentScene](data);
-    // });
+    loadData().then(data => {
+        scenes[currentScene](data);
+    });
    addParagraphForScene(currentScene)
+}
+
+async function loadData()
+{
+    const data = await d3.csv("./data/student-data-clean-noindex.csv");
+    return data;
 }
 
 document.getElementById('previous').style.display = 'none'; 
@@ -28,14 +34,11 @@ document.getElementById('next').addEventListener('click', function() {
 });
 
 document.getElementById('previous').addEventListener('click', function() {
-
     if (currentScene === 1) {
         document.getElementById('previous').style.display = 'none';
     }
-
     currentScene = (currentScene - 1 + scenes.length) % scenes.length;
     renderScene();
-
     if (currentScene === scenes.length - 2) { // If you're on the second to the last scene
         document.getElementById('next').style.display = 'inline-block';
         document.getElementById('start-over').style.display = 'none';
@@ -54,7 +57,7 @@ document.getElementById('start-over').addEventListener('click', function() {
 
 function addParagraphForScene(sceneIndex) {
     const container = document.getElementById('text-container'); // assuming you have a div with id "sceneContainer" where you want to append the paragraph
-    container.innerHTML = ''; 
+    container.innerHTML = '';
     let paragraphContent;
     switch (sceneIndex) {
         case 0:
@@ -76,104 +79,95 @@ function addParagraphForScene(sceneIndex) {
         container.appendChild(paragraph);
     }
 }
-function renderScene1(raw_data) {
-    var aggregatedData = aggregateData(raw_data);
-    var svg = d3.select("svg"),
-        width = +svg.attr("width"),
-        height = +svg.attr("height");
 
-    // Define margins for the SVG
-    var margin = { top: 50, right: 30, bottom: 100, left: 50 },
-        chartWidth = width - margin.left - margin.right,
-        chartHeight = height - margin.top - margin.bottom;
+async function drawScatter(dataInp)
+{
+    const data = dataInp
+    console.log(data)
+    const xAccess = (d) => d.alcoholism1to5;
+    const yAccess = (d) => d.averageGrade;
+    const colorAccess = (d) => d.school;
+    const width = d3.min([window.innerWidth * 0.9, window.innerHeight * 0.9]);
+    const dimensions = {
+        width,
+        height: width,
+        margins: {
+        top: 10,
+        right: 10,
+        bottom: 50,
+        left: 50
+        }
+    };
+    dimensions.boundedWidth =
+    dimensions.width - dimensions.margins.left - dimensions.margins.right;
+    dimensions.boundedHeight =
+    dimensions.height - dimensions.margins.top - dimensions.margins.bottom;
 
-    var xScale = d3.scaleBand()
-        .domain(aggregatedData.map(d => d.genre))
-        .range([0, chartWidth])
-        .padding(0.5);
+  const wrapper = d3
+    .select("#wrapper")
+    .append("svg")
+    .attr("width", dimensions.width)
+    .attr("height", dimensions.height);
 
-    var yScale = d3.scaleLinear()
-        .domain([0, d3.max(aggregatedData, d => d.averageEnergy) + 0.2])
-        .range([chartHeight, 0]);
+  const bounds = wrapper
+    .append("g")
+    .style(
+      "transform",
+      `translate(${dimensions.margins.left}px, ${dimensions.margins.top}px)`
+    );
 
-    var xAxis = d3.axisBottom(xScale);
-    var yAxis = d3.axisLeft(yScale);
+    // Createing Scales
+    const xScale = d3
+        .scaleLinear()
+        .domain(d3.extent(data, xAccess))
+        .range([0, dimensions.boundedWidth])
+        .nice();
 
+    const yScale = d3
+        .scaleLinear()
+        .domain(d3.extent(data, yAccess))
+        .range([dimensions.boundedHeight, 0])
+        .nice();
 
-    // Draw the axes
-    var chartGroup = svg.append("g")
-        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+    const colorScale = d3
+        .scaleLinear()
+        .domain(d3.extent(data, colorAccess))
+        .range(["skyblue", "darkslategray"]);
 
-        chartGroup.append("text")
-    .attr("transform", "rotate(-90)")  // To rotate the text and make it vertical
-    .attr("y", -50) 
-    .attr("x", -chartHeight / 2)  
-    .attr("dy", "-3em")  
-    .style("text-anchor", "middle")
-    .text("Energy");
+    //  Draw data
+    const dots = bounds
+        .selectAll("circle")
+        .data(data)
+        .enter()
+        .append("circle")
+        .attr("cx", (d) => xScale(xAccess(d)))
+        .attr("cy", (d) => yScale(yAccess(d)))
+        .attr("r", 4)
+        .attr("fill", (d) => colorScale(colorAccess(d)));
+    const xAxisGenerator = d3.axisBottom().scale(xScale);
 
-    chartGroup.append("g")
-        .attr("transform", "translate(0," + chartHeight + ")")
-        .call(xAxis)
-        .selectAll(".tick text")
-        .attr("transform", "rotate(-45)")  // Rotates text by 45 degrees
-        .style("text-anchor", "end")
-        .attr("dx", "-0.5em")
-        .attr("dy", "0.5em");
-
-    chartGroup.append("g")
-        .call(yAxis);
-
-    // Draw the scatterplot
-    chartGroup.selectAll("circle")
-        .data(aggregatedData)
-        .enter().append("circle")
-        .attr("cx", d => xScale(d.genre) + xScale.bandwidth() / 2)  // Align with center of band
-        .attr("cy", d => yScale(d.averageEnergy))
-        .attr("r", 5)
-        .style("fill", "#0077b6")
-        .on("mouseover", function(event, d) {
-            d3.select(this)
-            .attr("r", 7)
-            .style("fill", "#ff5733");
+    const xAxis = bounds
+        .append("g")
+        .call(xAxisGenerator)
+        .style("transform", `translateY(${dimensions.boundedHeight}px)`);
+    const xAxisLabel = xAxis
+    .append("text")
+    .attr("x", dimensions.boundedWidth / 2)
+    .attr("y", dimensions.margins.bottom - 10)
+    .attr("fill", "black")
+    .style("font-size", "1.4em")
+    .html("Alcohol Consumption 1 (Low) to 5 (High)");
     
-        // Add tooltip
-        chartGroup.append("text")
-            .attr("id", "tooltip")
-            .attr("x", xScale(d.genre) + xScale.bandwidth() / 2)  // Center the tooltip text within the band
-            .attr("y", yScale(d.averageEnergy) - 15)
-            .attr("text-anchor", "middle")
-            .attr("font-family", "sans-serif")
-            .attr("font-size", "11px")
-            .attr("font-weight", "bold")
-            .attr("fill", "black")
-            .text(`Danceability: ${d.averageDanceability}`);
-        })
-        .on("mouseout", function(d) {
-            d3.select(this)
-            .attr("r", 5)
-            .style("fill", "#0077b6");
-    
-        // Remove tooltip
-        d3.select("#tooltip").remove();
-        });
+    const yAxisGenerator = d3.axisLeft().ticks(5).scale(yScale);
 
-    // Add annotation
-    const annotations = [{
-        note: {
-            label: "Hover over each point to see danceability.",
-            title: "Note"
-        },
-        x: width / 2,
-        y: margin.top / 2,
-        dy: 0,
-        dx: 0
-    }];
-
-    const makeAnnotations = d3.annotation()
-        .annotations(annotations);
-
-    svg.append("g")
-        .attr("class", "annotation-group1")
-        .call(makeAnnotations);
+    const yAxis = bounds.append("g").call(yAxisGenerator);
+    const yAxisLabel = yAxis
+    .append("text")
+    .attr("x", -dimensions.boundedHeight / 2)
+    .attr("y", -dimensions.margins.left + 10)
+    .style("fill", "black")
+    .style("transform", "rotate(-90deg)")
+    .html("Average Grade")
+    .style("font-size", "1.4em")
+    .style("text-anchor", "middle");
 }
