@@ -1,24 +1,64 @@
-
+/* 
 #graph-container {
     width: 1000px;
     height: 1000px;
     margin: 10px;
     padding: 10px;
-}
+} */
 
 button {
-    margin: 5px;
+    background-color: #0047AB;
+    border: none;
+    color: white;
+    padding: 15px 32px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 4px 2px;
+    cursor: pointer;
+    border-radius: 6px;
+  }
+
+#title-container
+{
+    background-color: #89CFF0;
+    height: 5em;
+    align-items: center;
+    margin-top: -20px;
+    padding-top: 5em;
+    background-image: url('./assets/alcohol.webp'), url('./assets/school.jpg');
+    background-position: right, left;
+    background-repeat: no-repeat, no-repeat;
+}
+
+#page-title
+{
+    /* background-color: #89CFF0; */
+    background-image: url('./assets/blue.jpeg');
+    background-size: 10em;
 }
 
 body {
     font-family: Arial, sans-serif;
     text-align: center;  /* Center the text globally for the entire page. */
-    display: flex;       /* Set body as a flex container */
     flex-direction: column;  /* Items are stacked vertically */
     justify-content: center; /* Center items horizontally */
     align-items: center;     /* Center items vertically */
     height: 100vh;      /* Set body height to 100% of the viewport height */
-    background-color: grey;
+    background-color: lightblue;
+}
+
+div.tooltip {
+    position: absolute;
+    text-align: center;
+    padding: 10px;
+    background: #313639;
+    color: #f9f9f9;
+    border: 0px;
+    border-radius: 8px;
+    pointer-events: none;
+    font-size: .7rem;
 }
 
 
