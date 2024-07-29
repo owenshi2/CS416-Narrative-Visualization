@@ -1,10 +1,14 @@
 // d3.select('h1').style('color', 'red');
 let currentScene = 0;
 // const scenes = [renderScene1, renderScene2, renderScene3];
-const scenes = [drawScatter, drawScatter2, drawScatter];  
+const scenes = [drawScatter, drawScatter2, martini];  
 window.onload = renderScene;
 
 function renderScene() {
+    if (currentScene === 0 || currentScene === 1)
+    {
+        removeMartini();
+    }
     loadData().then(data => {
         scenes[currentScene](data);
     });
@@ -17,12 +21,17 @@ async function loadData()
     return data;
 }
 
+function removeMartini() {
+    // Remove songs, input boxes, labels, and the Show Songs button
+    d3.select("#martini-container").html("");
+}
+
 document.getElementById('previous').style.display = 'none'; 
 
 document.getElementById('next').addEventListener('click', function() {
     if (currentScene === scenes.length - 1) {
         document.getElementById('next').style.display = 'none';
-        document.getElementById('start-over').style.display = 'inline-block'; 
+        document.getElementById('start-over').style.display = 'inline-block';
     } else {
         currentScene = (currentScene + 1) % scenes.length;
         d3.selectAll("g").style("display", "none");
@@ -78,7 +87,11 @@ function addParagraphForScene(sceneIndex) {
             Let's continue to a bigger picture overview by hitting the \"Next\" button up top...";
             break;
         case 2:
-            paragraphContent = "Graph 3: . Now click on a data point to ";
+            paragraphContent = "Graph 3: Free form exploration.\
+            Now you can observe with your own graph!\
+            Try it out with the first values in each category and tweak it how you like.\
+            Some trends are more subtle than others, but can you spot the correlation?\
+            Note that study time is three times the amount that will be displayed.";
             break;
         default:
             paragraphContent = ""; // default or for additional scenes
@@ -224,7 +237,6 @@ async function drawScatter2(dataInp)
           y = d3.scaleLinear().domain([0, 100]).range([height, 0])
           size = d3.scalePow().domain([0.5, d3.max(dataInp, d => d.alcoholism1to5)]).range([0, width]),
           color = d3.scaleLinear().domain(d3.extent(dataInp, d => d.failures)).range(["blue", "orangered"]);
-          //
     const svg = d3.select('svg')
         .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
@@ -335,4 +347,159 @@ async function drawScatter2(dataInp)
     svg.append("g")
         .attr("class", "annotation-group1")
         .call(makeAnnotations);
+}
+
+async function martini(dataInp)
+{
+    d3.select("#martini-container").append("div").attr("id", "selection-container");
+    d3.select('svg').selectAll("circle").remove();
+    const container = d3.select("#selection-container");
+    const attributesX = ["alcoholism1to5", "studytime", "averageGrade"];
+    const attributesY = ["averageGrade", "studytime", "alcoholism1to5"];
+    const attributesSize = ["failures", "alcoholism1to5", "age"];
+    const attributesColor = ["gender", "studytime", "alcoholism1to5"];
+
+    // Append text input boxes to the scene3-container
+    container.append("p").append("b").text("First Choose an X-axis:");
+    attributesX.forEach(attribute => {
+        const xRadioOption = container.append("input").attr("type", "radio").attr("name", "x-axis").attr("id", "xOption").attr("value", `${attribute}`);
+        container.append("label")
+            .attr("for", "xOption")
+            .text(`X-Axis: ${attribute}`);
+        container.append("br");
+    });
+    container.append("br");
+    container.append("p").append("b").text("Now Choose a Y-axis:");
+    attributesY.forEach(attribute => {
+        const yRadioOption = container.append("input").attr("type", "radio").attr("name", "y-axis").attr("id", `yOption`).attr("value", `${attribute}`);
+        container.append("label")
+            .attr("for", "yOption")
+            .text(`Y-Axis: ${attribute}`);
+        container.append("br");
+    });
+    container.append("br");
+    container.append("p").append("b").text("Next Choose a Circle Size:");
+    attributesSize.forEach(attribute => {
+        const sizeRadioOption = container.append("input").attr("type", "radio").attr("name", "size").attr("id", `sizeOption`).attr("value", `${attribute}`);
+        container.append("label")
+            .attr("for", "sizeOption")
+            .text(`Size: ${attribute}`);
+        container.append("br");
+    });
+    container.append("br");
+    container.append("p").append("b").text("Finally, Choose a Color:");
+    attributesColor.forEach(attribute => {
+        const colorRadioOption = container.append("input").attr("type", "radio").attr("name", "color").attr("id", `colorOption`).attr("value", `${attribute}`);
+        container.append("label")
+            .attr("for", "colorOption")
+            .text(`Color: ${attribute}`);
+        container.append("br");
+    });
+
+    // Button to trigger song filtering/display
+    container.append("button")
+        .text("Generate graph")
+        .on("click", () => displayGraph(dataInp));
+}
+
+async function displayGraph(dataInp)
+{
+    //
+    d3.selectAll("g").style("display", "none");
+    d3.select('svg').selectAll("circle").remove();
+    var xAxisCriteria = document.querySelector('input[name="x-axis"]:checked').value;
+    var yAxisCriteria = document.querySelector('input[name="y-axis"]:checked').value;
+    var sizeCriteria = document.querySelector('input[name="size"]:checked').value;
+    var colorCriteria = document.querySelector('input[name="color"]:checked').value;
+    var studTime = d => d["studytime"];
+    var gradeTip = d => d["averageGrade"];
+    var failTip = d => d["failures"];
+    var alcTip = d => parseInt(d["alcoholism1to5"]);
+    var ageTip = d => d["age"];
+    var sexTip = d => d["gender"];
+    const margin = {top: 20, right: 30, bottom: 30, left: 40},
+          width = +d3.select("svg").attr("width") - margin.left - margin.right,
+          height = +d3.select("svg").attr("height") - margin.top - margin.bottom;
+
+    const x = d3.scaleLinear().domain([0.5, d3.max(dataInp, d => d[xAxisCriteria])]).range([0, width]),
+          y = d3.scaleLinear().domain([0, d3.max(dataInp, d => d[yAxisCriteria])]).range([height, 0])
+          size = d3.scalePow().domain([0, d3.max(dataInp, d => d[sizeCriteria])]).range([0, width]);
+    if (colorCriteria === "gender" || colorCriteria === "sex")
+    {
+        var color = d3.scaleOrdinal().domain(d3.extent(dataInp, d => d[colorCriteria])).range(["blue", "orangered"]);
+    } else
+    {
+        var color = d3.scaleLinear().domain(d3.extent(dataInp, d => d[colorCriteria])).range(["blue", "orangered"]);
+    }
+    // if (sizeCriteria == )
+    // var sizeVal = 
+    d3.select('svg')
+        .selectAll("circle")
+        .data(dataInp)
+        .enter()
+        .append("circle")
+        .attr("cx", (d) => x(d[xAxisCriteria]) + margin.top + 30)
+        .attr("cy", (d) => y(d[yAxisCriteria]) + margin.left)
+        .attr("r", (d) => size(d[sizeCriteria]) / 30) // change r and fill later
+        .attr("fill", (d) => color(d[colorCriteria]))
+        // Mouseover Events
+        .on('mouseover', function (d, i) {
+            d3.select(this).transition()
+                .duration('100')
+                .attr("r", (d) => size(d[sizeCriteria]) / 35);
+            //Makes div appear
+            div.transition()
+                .duration('200')
+                .style("opacity", 1);
+            //Uses data
+            var yPos = d3.select(this).attr("cy");
+            var xPos = d3.select(this).attr("cx");
+            div.html(`Alcoholism: ${alcTip(i)}\
+                    <br>Study Hours per Week: ${studTime(i) * 3}\
+                    <br>AverageGrade: ${gradeTip(i)}\
+                    <br>Age: ${ageTip(i)}\
+                    <br>Gender: ${sexTip(i)}\
+                    <br>Failed Classes: ${failTip(i)}`)
+                .style("top", (parseFloat(yPos) + 225) + "px")
+                .style("left", (parseFloat(xPos) + 500) + "px");
+        }).on('mouseout', function (d, i) {
+            d3.select(this).transition()
+                .duration('200')
+                .attr("r", (d) => size(d[sizeCriteria]) / 30);
+            //makes div disappear
+            div.transition()
+                .duration('200')
+                .style("opacity", 0);
+        });
+    const svg = d3.select('svg')
+        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+    var div = d3.select("body").append("div")
+        .attr("class", "tooltip")
+        .style("opacity", 0);
+    // x axis
+    svg.append("g")
+        .attr("class", "axis axis--x")
+        .attr("transform", "translate(" + (30 + margin.top) + "," + (height + margin.top) + ")")
+        .call(d3.axisBottom(x))
+        .append("text")
+        .attr("transform", "translate(-30, 0)")
+        .attr("fill", "black")
+        .attr("x", width - margin.right + 5)
+        .attr("y", -15)
+        .attr("dy", "0.71em")
+        .attr("text-anchor", "start")
+        .text(`${xAxisCriteria}`);
+
+    // y axis
+    svg.append("g")
+        .attr("class", "axis axis--y")
+        .attr("transform", "translate("+ (30 + margin.top) + ","+ margin.top +")")
+        .call(d3.axisLeft(y))
+        .append("text")
+        .attr("fill", "black")
+        .attr("transform", "rotate(-90)")
+        .attr("y", 6)
+        .attr("dy", "0.71em")
+        .attr("text-anchor", "end")
+        .text(`${yAxisCriteria}`);
 }

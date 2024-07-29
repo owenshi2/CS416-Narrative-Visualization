@@ -32,6 +32,12 @@ button {
     background-repeat: no-repeat, no-repeat;
 }
 
+#martini-container {
+    width: 550px;
+    height: 550px;
+    margin: auto;
+}
+
 #page-title
 {
     /* background-color: #89CFF0; */

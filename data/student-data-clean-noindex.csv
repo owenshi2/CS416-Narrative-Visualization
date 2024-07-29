@@ -1,4 +1,4 @@
-school,sex,age,studytime,failures,schoolsup,averageGrade,alcoholism1to5
+school,gender,age,studytime,failures,schoolsup,averageGrade,alcoholism1to5
 GP,F,18,2,0,yes,28.33,1.0
 GP,F,17,2,0,no,26.67,1.0
 GP,F,15,2,3,yes,41.67,2.5
