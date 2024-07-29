@@ -20,6 +20,11 @@ button {
     border-radius: 6px;
   }
 
+button:hover {
+background-color: #555555;
+color: white;
+}
+
 #title-container
 {
     background-color: #89CFF0;

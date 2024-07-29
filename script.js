@@ -354,8 +354,8 @@ async function martini(dataInp)
     d3.select("#martini-container").append("div").attr("id", "selection-container");
     d3.select('svg').selectAll("circle").remove();
     const container = d3.select("#selection-container");
-    const attributesX = ["alcoholism1to5", "studytime", "averageGrade"];
-    const attributesY = ["averageGrade", "studytime", "alcoholism1to5"];
+    const attributesX = ["alcoholism1to5", "studytime", "averageGrade", "age"];
+    const attributesY = ["averageGrade", "age", "studytime", "alcoholism1to5"];
     const attributesSize = ["failures", "alcoholism1to5", "age"];
     const attributesColor = ["gender", "studytime", "alcoholism1to5"];
 
@@ -421,7 +421,7 @@ async function displayGraph(dataInp)
           width = +d3.select("svg").attr("width") - margin.left - margin.right,
           height = +d3.select("svg").attr("height") - margin.top - margin.bottom;
 
-    const x = d3.scaleLinear().domain([0.5, d3.max(dataInp, d => d[xAxisCriteria])]).range([0, width]),
+    const x = d3.scaleLinear().domain(d3.extent(dataInp, d => d[xAxisCriteria])).range([0, width]),
           y = d3.scaleLinear().domain([0, d3.max(dataInp, d => d[yAxisCriteria])]).range([height, 0])
           size = d3.scalePow().domain([0, d3.max(dataInp, d => d[sizeCriteria])]).range([0, width]);
     if (colorCriteria === "gender" || colorCriteria === "sex")
